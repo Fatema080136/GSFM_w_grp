@@ -1,6 +1,6 @@
 package org.mysimulationmodel.simulation.environment;
 
-import org.mysimulationmodel.simulation.agent.IBaseRoadUser;
+import org.mysimulationmodel.simulation.agent.*;
 import org.mysimulationmodel.simulation.common.CStatic;
 import org.mysimulationmodel.simulation.common.CVector;
 import org.mysimulationmodel.simulation.common.CWall;
@@ -46,17 +46,30 @@ public class CEnvironment extends JPanel implements IEnvironment
     private Map<Integer,List<IBaseRoadUser>> m_carneedtoinitialize = Collections.synchronizedMap(new HashMap<>());
     private CopyOnWriteArrayList<IBaseRoadUser> m_agent = new CopyOnWriteArrayList<>();
     private ArrayList<IBaseRoadUser> m_car = new ArrayList<>();
-    private Map<Double,List<IBaseRoadUser>> m_pedestriangroup = new HashMap<>();
+    private static final Random m_rand = new Random();
     private ArrayList<CStatic> m_wall = new ArrayList<>( 4 );
     private ArrayList<CWall> m_walledge = new ArrayList<>( );
     private ArrayList<CWall> m_roadborder = new ArrayList<>( 2 );
+
     private ArrayList<CWall> m_pedestrianborder = new ArrayList<>( 2 );
+    private Map<Integer,List<IBaseRoadUser>> m_pedgroups = Collections.synchronizedMap(new HashMap<>());
+    private List<IBaseRoadUser> m_pedestriangroup = new ArrayList<>();
+
+
     private Map<String,Double> m_strategy = new HashMap<>();
     private int m_width;
     private int m_height;
     private float m_cycle;
     private int m_scenario;
 
+    /**
+     * list of groups
+     */
+    private final List<IMainGroup> m_groups = new CopyOnWriteArrayList<>();
+    public Map<Integer,List<IBaseRoadUser>> addPedGroups()
+    {
+        return m_pedgroups;
+    }
 
     public CEnvironment()
     {
@@ -126,6 +139,7 @@ public class CEnvironment extends JPanel implements IEnvironment
         //drawborder( Color.GRAY );
         try {
             drawPedestrian();
+            //drawgroups(graphics2d);
             drawCar();
         } catch (Exception e) {
             e.printStackTrace();
@@ -206,6 +220,101 @@ public class CEnvironment extends JPanel implements IEnvironment
         return m_agent;
     }
 
+    //-------------------------------------- Suhair Functions ---------------------------------------------
+
+    /**
+     * groups construction
+     * @param l_pedgroup
+     */
+    public void initializegroups(List<IBaseRoadUser> l_pedgroup, int p_numberofgroups)//,int p_clustersize)
+    {
+        int l_numberofgroups = p_numberofgroups;
+
+        m_pedestriangroup.addAll( l_pedgroup );
+
+
+        // groups construction
+        // ToDo: update car
+        for ( int i = 0; i < this.addPedGroups().size(); i++ )
+        {
+            m_groups.add( i,new CMainGroup( this.addPedGroups().get(i).size(), this, 360 ) );
+
+            for ( int j = 0; j < this.addPedGroups().get(i).size(); j++)
+            {
+                m_groups.get(i).members().add( this.addPedGroups().get(i).get(j));
+            }
+
+            m_groups.get( i ).chooseMainLeader( nearestroad( (IBaseGroup)m_groups.get( i ), m_roadborder ) );
+
+            if ( this.addPedGroups().get(i).size() > 1 )
+                m_groups.get( i ).findlastmember();
+        }
+
+        m_groups.forEach( i -> i.members()
+                .forEach( j ->
+                {
+                    j.setPedinGroup( 1 );
+                    j.setGroupId( i.id() );
+
+                } ) );
+
+        m_groups.forEach( g -> g.goal( g.mainLeader().getGoalposition() ) );
+        m_groups.stream().filter( g -> g.size() > 8 ).forEach( IMainGroup::cluster );
+        m_groups.forEach( i -> i.members().forEach(j -> System.out.println(i.id()+ "  ggg "+ j.getname())));
+
+    }
+
+    private boolean clusteringprobability(final double p_size)
+    {
+        //range of seven nmbers (0-6) starting from the group size
+        return m_rand.nextInt(7) + p_size >= 9;
+    }
+
+    private CWall nearestroad( IBaseGroup p_group, List<CWall> p_roads )
+    {
+        final double distancetoroad1 = p_group.members()
+                .stream()
+                .mapToDouble( m -> CVector.distanceToWall( m.getPosition(),
+                        p_roads.get( 0 ).getPoint1(),
+                        p_roads.get( 0 ).getPoint2() )
+                        .length() )
+                .min().getAsDouble();
+
+        final double distancetoroad2 = p_group.members()
+                .stream()
+                .mapToDouble( m -> CVector.distanceToWall( m.getPosition(),
+                        p_roads.get( 1 ).getPoint1(),
+                        p_roads.get( 1 ).getPoint2() )
+                        .length() )
+                .min().getAsDouble();
+
+        return distancetoroad1 < distancetoroad2 ? p_roads.get( 0 ) : p_roads.get( 1 );
+    }
+
+
+    /**
+     * draw groups for visualization
+     */
+    private void drawgroups(Graphics2D p_graphics2D)
+    {
+        m_groups.parallelStream()
+                .forEach(
+                        g ->
+                        {
+                            if ( g.mode() == EGroupMode.COORDINATING && g.clusters().size() > 1 /*&& clusteringprobability(g.size())*/ )
+                                g.clusters().forEach(c -> c.draw(p_graphics2D));
+                            else
+                                g.draw(p_graphics2D);
+                        });
+    }
+
+    public List<IMainGroup> groups()
+    {
+        return m_groups;
+    }
+
+    //------------------------ end Suhair functions -----------------------------------------------------
+
 
     /**
      * get the list of walls with their information
@@ -225,11 +334,6 @@ public class CEnvironment extends JPanel implements IEnvironment
     public void setCurrentCycle(float p_cycle)
     {
         m_cycle = p_cycle;
-    }
-
-    public Map<Double, List<IBaseRoadUser>> getGroupList()
-    {
-        return m_pedestriangroup;
     }
 
     public ArrayList<CWall> getPedestrianBorderInfo()

@@ -21,6 +21,7 @@ import javax.vecmath.Vector2d;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Stream;
 import java.util.stream.Collectors;
 
@@ -45,6 +46,7 @@ public class IBaseRoadUser extends IBaseAgent<IBaseRoadUser>
     private Vector2d m_goal;
     private Vector2d m_velocity ;
     private double m_speed;
+    private UUID m_groupid;
     private CEnvironment m_env;
     private double m_maxspeed;
     private double m_lengthRadious;
@@ -52,6 +54,7 @@ public class IBaseRoadUser extends IBaseAgent<IBaseRoadUser>
     private int m_type; // ped 1 nd car 2
     private double m_maxspeedfactor;
     private double m_maxforce;
+    private int m_inGroup =  0;
     private double m_radius;
     private double m_groupId;
     private double m_carfollowingActive = 0;
@@ -247,10 +250,10 @@ public class IBaseRoadUser extends IBaseAgent<IBaseRoadUser>
         return this.m_movingDirection;
     }
 
-    public double getGroupId()
+    /*public double getGroupId()
     {
         return this.m_groupId;
-    }
+    }*/
     public Vector2d getGoalposition() {
         return m_goal;
     }
@@ -472,6 +475,8 @@ public class IBaseRoadUser extends IBaseAgent<IBaseRoadUser>
     private void accelaration( double p_speedfactor )
     {
         Vector2d l_desiredVelocity = CVector.scale( this.m_maxspeed, CVector.direction( this.getGoalposition(), this.getPosition() ) );
+        Vector2d l_groupforce = new Vector2d( 0, 0 );
+        Vector2d l_totalforce;
 
         if (this.getType() == 1)
         {
@@ -504,11 +509,39 @@ public class IBaseRoadUser extends IBaseAgent<IBaseRoadUser>
                             m_pedlamda, m_repulsefactorpedtoped, m_pedtopedsigma, m_pedtocarsigma, m_repulsefactorpedtocar ) );
                 }
             }
+            /*
+             * groups interaction to each other
+             * if any group finds other group in his direction of travel in his FOV
+             * the direction of that agent is deviated in the same direction
+             */
+            //suhair - slowing down the velocity in order to stop gradually  instead of bouncing on the leader
+            // Check the distance to detect whether the character is inside the slowing area
+            IPedestrianGroup l_group = group();
+            if ( l_group != null )
+            {
+                if ( !this.equals(l_group.mainLeader()) )//&& l_group.zone() == EZone.SAFE )
+                {
+                    l_groupforce = CForce.groupforce(l_group, this);
+                }
 
+                l_totalforce = CVector.add( l_repulsetoOthers,l_groupforce);
+
+                Vector2d l_velocity =
+                        CVector.truncate(
+                                CVector.add(CForce.drivingForce(l_desiredVelocity, this.m_velocity,0.5), l_totalforce),
+                                2*m_pixelpermeter
+                        );
+                m_speed = this.m_velocity.length();
+                this.m_velocity = CVector.scale(m_speed, CVector.normalize(CVector.add(this.m_velocity, l_velocity)));
+                this.m_position = CVector.add(m_position, m_velocity);
+            }
+            else
+            {
             m_speed = this.m_velocity.length();
             this.m_velocity = CVector.scale( p_speedfactor, CVector.normalize( CVector.add( this.m_velocity,
                     CVector.add( CForce.drivingForce( l_desiredVelocity, this.m_velocity ), l_repulsetoOthers ) ) ) );
             this.m_position = CVector.add( m_position, m_velocity );
+            }
             return;
         }//till here
 
@@ -751,6 +784,9 @@ public class IBaseRoadUser extends IBaseAgent<IBaseRoadUser>
         return this;
 
     }
+    public int getIsInGroup() {
+        return m_inGroup;
+    }
 
     @IAgentActionFilter
     @IAgentActionName( name = "car/stop/moving" )
@@ -944,6 +980,63 @@ public class IBaseRoadUser extends IBaseAgent<IBaseRoadUser>
     public int getTrue()
     {
         return m_usercreated;
+    }
+
+    /*
+    * pedestrian group
+     */
+    /**
+     * find user group
+     *
+     * @return group reference if user is member, else return null
+     */
+    public IPedestrianGroup group()
+    {
+        for ( IMainGroup g : m_env.groups() )
+            if ( g.ismember( this ) )
+            {
+                if ( g.mode() == EGroupMode.COORDINATING )
+                {
+                    for ( ICluster c : g.clusters() )
+                        if ( c.ismember( this ) )
+                            return c;
+                }
+
+                return g;
+            }
+
+        return null;
+    }
+
+    public IPedestrianGroup maingroup()
+    {
+        for ( IMainGroup g : m_env.groups() )
+            if ( g.ismember( this ) )
+                return g;
+
+        return null;
+    }
+
+    public IMainGroup getgroupinfo(IBaseRoadUser mem)
+    {
+        UUID id = mem.getGroupId();
+        return m_env.groups().parallelStream().filter(g->g.id() ==id).findFirst().get();
+
+    }
+    public void setGroupId( final UUID p_groupid )
+    {
+        this.m_groupid = p_groupid;
+    }
+
+    public UUID getGroupId()
+    {
+        return  m_groupid;
+    }
+
+    public IBaseRoadUser setPedinGroup(final double p_pedinGroup)
+    {
+        this.m_pedinGroup = p_pedinGroup;
+        return this;
     }
 
 

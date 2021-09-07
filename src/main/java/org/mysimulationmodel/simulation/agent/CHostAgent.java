@@ -130,6 +130,9 @@ public final class CHostAgent extends IBaseAgent<CHostAgent>
                         i.beliefbase().add( CLiteral.from("force", CRawTerm.from( 3.0 ) ) );
                         i.setBehavior( 3 );
 
+                        i.getCurrentlyPlayingWith().forEach(l-> {
+                            if(i.getIsInGroup() != 0) l.group().updatezone(EZone.SAFE);
+                        } );
                         i.getCurrentlyPlayingWith().clear();
                     }
 
@@ -162,7 +165,7 @@ public final class CHostAgent extends IBaseAgent<CHostAgent>
                         i.setNoSC( l_neighbourlist.size() );
 
                         if (!l_pedinfront.isEmpty() )
-                        {   m_env.m_playedgame = 1;
+                        {   //m_env.m_playedgame = 1;
                             i.beliefbase().remove(CLiteral.from("force", CRawTerm.from(3.0)));
                             i.beliefbase().remove( CLiteral.from("force", CRawTerm.from( 0.0 ) ) );
                             i.beliefbase().add(CLiteral.from("force", CRawTerm.from(1.0)));
@@ -257,7 +260,7 @@ public final class CHostAgent extends IBaseAgent<CHostAgent>
             if  ( j != null && !i.getCurrentlyPlayingWith().contains( j )
                     && !j.getCurrentlyPlayingWith().contains( i ) && !l_closedlist.contains( i ) )
             {
-                m_env.m_playedgame = 1;
+                //m_env.m_playedgame = 1;
                 i.setM_deceleration(0);
                 ArrayList<Integer> l_strategyset;
 
@@ -266,9 +269,12 @@ public final class CHostAgent extends IBaseAgent<CHostAgent>
                     l_strategyset = new ArrayList<>();
                     l_strategyset.add(0,1); l_strategyset.add(1,0);
                 }
+                else if( j.getPedinGroup()==1 && j.getgroupinfo(j).mode() == EGroupMode.COORDINATING )
+                {
+                    l_strategyset = new ArrayList<>();
+                    l_strategyset.add(0,0); l_strategyset.add(1,1);
+                }
                 else l_strategyset = getstrategies( i, j, 2, 2, 3 );
-                //l_strategyset = getstrategies( i, j, 2, 2, 3 );
-                //System.out.println(l_strategyset+ "game_decision "+i.getname()+" "+j.getname());
 
                 i.beliefbase().remove( CLiteral.from("force", CRawTerm.from( 3.0 ) ) );
                 i.setBehavior(l_strategyset.get(0));
@@ -405,6 +411,53 @@ public final class CHostAgent extends IBaseAgent<CHostAgent>
                     );
                     i.getCurrentlyPlayingWith().remove(l_test[0]);
                     i.getCurrentlyPlayingWith().add(0,l_test[0]);
+
+                    // regarding any problem only comment this group member part
+                    // here only consider group member or own cluster memeber of j, not other cluster member of j's group
+                    int l_closed_listsize = l_closedlist.size();
+                    i.getCurrentlyPlayingWith().forEach(
+                            l ->
+                            {
+                                if(i.getIsInGroup() != 0){
+                                if ( !l.group().members().isEmpty() )
+                                {
+                                    l.group().updatezone(EZone.DANGER);
+                                    l.group().updatemode(EGroupMode.WALKING);
+
+                                    l.group().members().stream().filter(k -> !i.getCurrentlyPlayingWith().contains(k)
+                                            && !k.getCurrentlyPlayingWith().contains(i) )
+                                            .forEach(
+
+                                                    x -> {
+                                                        x.beliefbase().remove(CLiteral.from("force", CRawTerm.from(3.0)));
+                                                        x.beliefbase().remove(CLiteral.from("force", CRawTerm.from(1.0)));
+                                                        x.beliefbase().remove(CLiteral.from("force", CRawTerm.from(0.0)));
+                                                        x.beliefbase().remove(CLiteral.from("force", CRawTerm.from(2.0)));
+
+                                                        x.beliefbase().add(CLiteral.from("force", CRawTerm.from((double)l_strategyset.get(1))));
+                                                        x.setBehavior(l_strategyset.get(1));
+
+                                                        if (l_strategyset.get(1) == 0)
+                                                            CForce.helpingfunctionofaccelaration(i, x);
+
+                                                        x.trigger(CTrigger.from(
+                                                                ITrigger.EType.ADDGOAL, CLiteral.from(
+                                                                        l_strategy.get(l_strategyset.get(1)))));
+
+                                                        x.getCurrentlyPlayingWith().add(0,i);
+                                                        x.group().updatezone(EZone.DANGER);
+                                                        x.group().updatemode(EGroupMode.WALKING);
+                                                        l_closedlist.add(x);
+
+                                                    } );
+                                }
+                            }} );
+
+                    for( int s = l_closed_listsize; s < l_closedlist.size(); s++ )
+                    {
+                        i.getCurrentlyPlayingWith().add( l_closedlist.get(s));
+                    } // till here group
+
                 }
 
             }

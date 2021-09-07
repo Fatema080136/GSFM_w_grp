@@ -1,6 +1,7 @@
 package org.mysimulationmodel.simulation.common;
 
 import org.mysimulationmodel.simulation.agent.IBaseRoadUser;
+import org.mysimulationmodel.simulation.agent.IPedestrianGroup;
 import org.mysimulationmodel.simulation.environment.CEnvironment;
 
 import javax.vecmath.Vector2d;
@@ -23,6 +24,8 @@ public class CForce
     private static final double m_repulsefactorcartoped = 1.5;//6;
     private static final double m_cartopedsigma = 2;//5;
     private static final int m_pixelpermeter = CEnvironment.getpixelpermeter();
+    private static final double m_visstrenghtparameter = 0.35;//0.35; //global parameter
+    private static final double m_attstrenghtparameter = 0.25;//0.25;
 
     /**
      * calculate seek force towards goal position
@@ -47,11 +50,32 @@ public class CForce
                                             double p_repulsefactorpedtoped, double p_pedtopedsigma, double p_pedtocarsigma,
                                             double p_pedtocarforce )
     {
+        Vector2d l_normal = CVector.normalize(CVector.subtract(p_self.getPosition(), p_other.getPosition()));
+
+        /*
+         * in case of normal X/Y = 0, add a small value to deviate
+         * this scenario happened when 2 pedestrians are fighting in an exactly straight line
+         * (i.e. the normalized vector either 0 in x-axis or 0 in y-axis
+         * this value acts as a rotation
+         * ToDo: find a suitable algorithm to solve this problem
+         */
+        final double l_threshold = Math.pow( 10, -6 );
+        if ( l_normal.x < l_threshold )
+            l_normal.setX( l_normal.x + l_threshold );
+        if ( l_normal.y < l_threshold )
+            l_normal.setY( l_normal.y + l_threshold );
+
         if( p_other.getType() == 1 )
         {
             final double l_temp = p_self.getM_radius()/3 + p_other.getLengthradius()/2.5f - CVector.distance( p_self.getPosition(), p_other.getPosition() );
-            return CVector.scale(p_repulsefactorpedtoped * Math.exp(l_temp / p_pedtopedsigma) * anisotropic_character(p_self.getPosition(),
-                    p_other.getPosition(), p_pedlamda), CVector.normalize(CVector.subtract(p_self.getPosition(), p_other.getPosition())));//1.5
+            if( p_self.getIsInGroup() == 1 && p_self.group().members().contains(p_other)) {
+                return CVector.scale(p_repulsefactorpedtoped/ 2f * Math.exp((l_temp) / p_pedtopedsigma) * anisotropic_character(p_self.getPosition(),
+                        p_other.getPosition(), p_pedlamda), l_normal);//1.5
+            }
+            else {
+                return CVector.scale(p_repulsefactorpedtoped * Math.exp(l_temp / p_pedtopedsigma) * anisotropic_character(p_self.getPosition(),
+                        p_other.getPosition(), p_pedlamda), CVector.normalize(CVector.subtract(p_self.getPosition(), p_other.getPosition())));
+            }
         }
         else
         {
@@ -182,6 +206,40 @@ public class CForce
         else
             return new Vector2d(0,0);
     }
+
+    // ------ group force functions ------
+
+    public static Vector2d groupforce(final IPedestrianGroup p_group, final IBaseRoadUser p_self)
+    {
+        //  return attractivetootherPed(p_group,p_self);
+        return CVector.add( visibiltytootherPed( p_group, p_self ), attractivetootherPed( p_group, p_self ) );
+        //  return visibiltytootherPed(p_group, p_self);
+
+    }
+
+
+    private static Vector2d visibiltytootherPed(final IPedestrianGroup p_group, final IBaseRoadUser p_self)
+    {
+        double temp = m_visstrenghtparameter * p_group.maxrotationangle() / 20f;
+        return CVector.scale( temp, CVector.direction( p_self.getGoalposition(), p_self.getPosition() ) );
+        // return CVector.scale(temp, p_self.getVelocity());
+    }
+
+    private static Vector2d attractivetootherPed(final IPedestrianGroup p_group, final IBaseRoadUser p_self)
+    {
+        double m_centroiddistancethreshold = 0.5 * (p_group.size() - 1)*m_pixelpermeter;//0.5;//1*m_pixelpermeter;//0.5 * (p_group.size() - 1);
+
+        if ( ( CVector.distance( p_self.getPosition(), p_group.centroid() ) >= m_centroiddistancethreshold )
+                && !p_self.getVelocity().equals( new Vector2d( 0, 0 ) ) )
+        {
+            Vector2d pointingvector = CVector.direction( p_self.getPosition(), p_group.centroid() );
+            return CVector.scale( m_attstrenghtparameter, pointingvector );
+        }
+
+        else
+            return new Vector2d( 0, 0 );
+    }
+    //////-------------------till here--------------------------/////
 
     /*
      * the following methods are required to check for accuracy

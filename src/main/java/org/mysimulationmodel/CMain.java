@@ -43,6 +43,7 @@ final class CMain
         File l_ped = new File(System.getProperty("user.dir").concat("/agent.asl"));
         File l_car = new File(System.getProperty("user.dir").concat("/car.asl"));
         File l_host = new File(System.getProperty("user.dir").concat("/host.asl"));
+        File l_group = new File( System.getProperty( "user.dir" ).concat( "/group.asl" ) );
 
         CEnvironment l_env = new CEnvironment();
 
@@ -54,29 +55,54 @@ final class CMain
         l_frame.setDefaultCloseOperation( WindowConstants.EXIT_ON_CLOSE );
         l_env.setScenario(p_senarioid);
 
-
-        List<CInputFormat> l_roadusers = CCsvFileReader.readDataFromCSV(System.getProperty("user.dir").concat("/start_end_tuc_extended.csv"), p_senarioid);//_pca
+        //Without pedestrian social group
+        /*List<CInputFormat> l_roadusers = CCsvFileReader.readDataFromCSV(System.getProperty("user.dir").concat("/start_end_tuc_extended.csv"), p_senarioid);//_pca
         List<CInputFormat> l_pedestrians = l_roadusers.stream().filter( n -> n.m_roaduser_id.startsWith("p") ).collect(Collectors.toList());
-        List<CInputFormat> l_cars = l_roadusers.stream().filter( n -> n.m_roaduser_id.startsWith("v") ).collect(Collectors.toList());
+        List<CInputFormat> l_cars = l_roadusers.stream().filter( n -> n.m_roaduser_id.startsWith("v") ).collect(Collectors.toList());*/
+
+        List<CInputFormat_grp> l_roadusers = CCsvFileReader_grp.readDataFromCSV(System.getProperty( "user.dir" ).concat("/start_end_grp.csv"),p_senarioid );
+        List<CInputFormat_grp> l_pedestrians = l_roadusers.stream().filter( n -> n.m_type == 1 ).collect(Collectors.toList());
+        List<CInputFormat_grp> l_cars = l_roadusers.stream().filter( n -> n.m_type == 2 ).collect(Collectors.toList());
+        List<CInputFormat_grp> l_groups = l_roadusers.stream().filter( n -> n.m_type == 3 ).collect(Collectors.toList());
+
         int count = 0;
+        int l_groupnumber = 0;
         int maxTries = 3;
         ArrayList<COutputFormat> m_output = new ArrayList<>();
         while(true) {
             try
                     (    final FileInputStream l_pedestrianstream = new FileInputStream( l_ped );
                          final FileInputStream l_carstream = new FileInputStream( l_car );
+                         final FileInputStream l_groupstream = new FileInputStream( l_group );
                          final FileInputStream l_hoststream = new FileInputStream( l_host )
                     )
             {
-                Stream.concat(
+
+                if( !l_groups.isEmpty() )
+                {
+                    l_groupnumber = l_groups.get(0).m_groupnumber;
+                    //System.out.println( " group info "+ l_groupnumber );
+                }
+               /* Stream.concat(
                         new CPedestrianGenerator( l_pedestrianstream, l_env, l_pedestrians )
                                 .generatemultiple(  l_pedestrians.size()),
 
                         new CCarGenerator( l_carstream, l_env, l_cars )
                                 .generatemultiple( l_cars.size() )
 
+                ).collect( Collectors.toSet() );*/
+
+                Stream.concat(
+                        new CPedestrianGenerator_grp( l_pedestrianstream, l_env, l_pedestrians )
+                                .generatemultiple(  l_pedestrians.size()),
+
+                        new CCarGenerator_grp( l_carstream, l_env, l_cars )
+                                .generatemultiple( l_cars.size() )
+
                 ).collect( Collectors.toSet() );
 
+                l_env.initializegroups( new CGroupGenerator( l_groupstream, l_env, l_groups )
+                        .generatemultiple( l_groups.size() ).collect( Collectors.toList() ), l_groupnumber );
                 l_hostagent = new CHostGenarator( l_hoststream, l_env )
                         .generatesingle( 1 );
                 break;
@@ -126,6 +152,18 @@ final class CMain
                         e.printStackTrace();
                     }
                     l_env.repaint();
+                    l_env.groups()
+                            .forEach( g ->
+                            {
+                                try
+                                {
+                                    g.call();
+                                }
+                                catch ( Exception e )
+                                {
+                                    e.printStackTrace();
+                                }
+                            } );
                     l_env.getRoadUserinfo()
                             .forEach( i ->
                             {
@@ -142,7 +180,7 @@ final class CMain
                                         m_output.add( new COutputFormat( p_senarioid,l_timestep[0], i.getname(),i.getPosition().x, i.getPosition().y, l_speed*2 ) );
                                     }
                                     System.out.println(i.getname()+" "+i.getPosition());
-                                    Thread.sleep(5);
+                                    Thread.sleep(15);
                                 }
 
                                 catch ( final Exception l_exception )
@@ -171,7 +209,7 @@ final class CMain
                 "AllScenario_1.csv");
 
         long startTime = System.nanoTime();
-        for ( int i = 1; i<105; i++)//3.4
+        for ( int i = 1; i<5; i++)//3.4
         {
             if(i != 95)
                 m_output.add(
