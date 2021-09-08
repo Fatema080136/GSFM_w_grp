@@ -23,13 +23,11 @@ public class CCSVFileReaderForHannover
             while ( l_line != null )
             {
                 String[] l_attributes = l_line.split(",");
-                //System.out.println( "gggg "+l_attributes[6]);
                 if( !l_attributes[0].equals("frame") ) {
                     ArrayList<String> l_temp = new ArrayList<>();
                     l_temp.add( String.valueOf( Double.parseDouble(l_attributes[2])/2.1185660421977854e+01f ) );
                     l_temp.add(String.valueOf( Double.parseDouble(l_attributes[3])/2.1185660421977854e+01f ));
-                    //df.format( Double.parseDouble
-                    //System.out.println( (int)((Double.parseDouble(l_attributes[0]) * 100)) / 100.0 + " bla bla");
+
                     m_realdata.put( new StringBuffer(String.valueOf((int)((Double.parseDouble(l_attributes[0]) * 100)) / 100.0))
                             .append(String.valueOf((int)((Double.parseDouble(l_attributes[1]) * 100)) / 100.0)).toString(), l_temp);
 

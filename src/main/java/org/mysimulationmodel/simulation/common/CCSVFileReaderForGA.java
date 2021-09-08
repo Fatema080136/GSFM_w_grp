@@ -16,8 +16,7 @@ public class CCSVFileReaderForGA
     {
 
         Map<String,ArrayList<String>> m_realdata = new HashMap<>();
-        Path pathToFile = Paths.get( "C:\\Users\\fatema\\Desktop\\modelbeforecombinigwithhaosmodel" +
-                "\\hamburg_model_without_calibration\\Trasportation_letters_journal\\HBS\\real_data_tuc.csv" );
+        Path pathToFile = Paths.get( System.getProperty("user.dir").concat("/real_data_tuc.csv" ));
 
         try ( BufferedReader l_br = Files.newBufferedReader( pathToFile, StandardCharsets.US_ASCII ) )
         {
@@ -25,13 +24,11 @@ public class CCSVFileReaderForGA
             while ( l_line != null )
             {
                 String[] l_attributes = l_line.split(",");
-                //System.out.println( "gggg "+l_attributes[6]);
 
                 ArrayList<String> l_temp = new ArrayList<>();
                 l_temp.add(l_attributes[4]);
                 l_temp.add(l_attributes[5]);
 
-                //System.out.println( l_attributes[5] + " wh "+l_attributes[6]);
                 m_realdata.put( new StringBuffer(new StringBuffer(l_attributes[1]).append(l_attributes[3])).append(l_attributes[12]).toString()
                         , l_temp );
 

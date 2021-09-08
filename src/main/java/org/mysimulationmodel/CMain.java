@@ -211,8 +211,7 @@ final class CMain
         long startTime = System.nanoTime();
         for ( int i = 1; i<5; i++)//3.4
         {
-            if(i != 95)
-                m_output.add(
+            m_output.add(
                         CMain.runSimulation(18.4, 9,
                                 2, i));
             System.out.println("i "+ i);

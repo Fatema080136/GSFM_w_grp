@@ -5,26 +5,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="0c65c73b-5ee0-4083-a453-7b0d7686a715" name="Default" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/jarRepositories.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/LICENSE" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/hamburgAllScenario_1.csv" beforeDir="false" afterPath="$PROJECT_DIR$/hamburgAllScenario_1.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/real_data_tuc.csv" beforeDir="false" afterPath="$PROJECT_DIR$/real_data_tuc.csv" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/org/mysimulationmodel/CMain.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/mysimulationmodel/CMain.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/mysimulationmodel/simulation/agent/CHostAgent.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/mysimulationmodel/simulation/agent/CHostAgent.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/mysimulationmodel/simulation/agent/IBaseRoadUser.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/mysimulationmodel/simulation/agent/IBaseRoadUser.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/mysimulationmodel/simulation/common/CCsvReadWrite.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/mysimulationmodel/simulation/common/CCsvReadWrite.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/mysimulationmodel/simulation/common/CForce.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/mysimulationmodel/simulation/common/CForce.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/mysimulationmodel/simulation/environment/CEnvironment.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/mysimulationmodel/simulation/environment/CEnvironment.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/org/mysimulationmodel/CMain.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/org/mysimulationmodel/CMain.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/org/mysimulationmodel/simulation/agent/CHostAgent.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/org/mysimulationmodel/simulation/agent/CHostAgent.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/org/mysimulationmodel/simulation/agent/IBaseRoadUser.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/org/mysimulationmodel/simulation/agent/IBaseRoadUser.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/org/mysimulationmodel/simulation/common/CCsvReadWrite.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/org/mysimulationmodel/simulation/common/CCsvReadWrite.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/org/mysimulationmodel/simulation/common/CForce.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/org/mysimulationmodel/simulation/common/CForce.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/org/mysimulationmodel/simulation/environment/CEnvironment.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/org/mysimulationmodel/simulation/environment/CEnvironment.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/mysimulationmodel/simulation/CcsvfileWriter.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/mysimulationmodel/simulation/common/CCSVFileReaderForGA.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/mysimulationmodel/simulation/common/CCSVFileReaderForGA.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/mysimulationmodel/simulation/common/CCSVFileReaderForHannover.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/mysimulationmodel/simulation/common/CCSVFileReaderForHannover.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/org/mysimulationmodel/simulation/common/CCSVFileReaderForGA.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/org/mysimulationmodel/simulation/common/CCSVFileReaderForGA.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/org/mysimulationmodel/simulation/common/CCSVFileReaderForHannover.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/org/mysimulationmodel/simulation/common/CCSVFileReaderForHannover.class" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -223,7 +211,7 @@
   <component name="PropertiesComponent">
     <property name="ASKED_ADD_EXTERNAL_FILES" value="true" />
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../GSFM_w_grp" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../GSFM_w_imaginary_grp" />
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
